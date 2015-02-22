@@ -12,8 +12,8 @@ var Client = module.exports = function (opts) {
 
   // Document which api version.
   this.apiVersion = {
-    vlc: '2.0.1 Twoflower',
-    spec: "http://repo.or.cz/w/vlc.git/blob/HEAD:/share/lua/http/requests/README.txt"
+    vlc: '2.1.0 Rincewind',
+    spec: "https://github.com/videolan/vlc/tree/master/share/lua/http/requests/README.txt"
   };
 
   opts = opts || {};
@@ -21,6 +21,13 @@ var Client = module.exports = function (opts) {
   this._base = this.base || util.format('http://%s:%d',
     opts.host || 'localhost',
     opts.port || 8080
+  );
+
+  // As of 2.1 VLC requires a password via basic http auth. Sadly it also
+  // currently requires that username is empty, which the http.request()
+  // auth option doesn't seem to like, so we do this manually here.
+  this._authHeader = util.format('Basic %s',
+    new Buffer(opts.username || '' + ':' + opts.password || '').toString('base64')
   );
 
   // The rest of this constructor is defining all the convenience methods
@@ -333,7 +340,10 @@ Client.prototype.request = function (resource, opts, cb) {
   request({
     method: 'GET',
     uri: client._resolve(resource),
-    qs: opts || {}
+    qs: opts || {},
+    headers: {
+      'Authorization' : this._authHeader
+    }
   }, function (err, res, body) {
     var json;
 
