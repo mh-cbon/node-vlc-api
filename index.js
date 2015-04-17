@@ -345,7 +345,10 @@ Client.prototype.request = function (resource, opts, cb) {
       'Authorization' : this._authHeader
     }
   }, function (err, res, body) {
-    var json;
+    if (err) {
+      // likely a connection error to the vlc server
+      throw err;
+    }
 
     // Documentation does not say which status codes to expect.
     // I'm filtering out 300-500 range codes here
@@ -367,6 +370,8 @@ Client.prototype.request = function (resource, opts, cb) {
     }
 
     // Body should be JSON-parse-able.
+    var json;
+
     try {
       json = JSON.parse(body.toString());
     }
