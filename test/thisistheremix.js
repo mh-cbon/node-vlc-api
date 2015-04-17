@@ -1,4 +1,4 @@
-var vlc = require('../')();
+var vlc = require('../')({password: '123'});
 
 doSomethingCrazy();
 
