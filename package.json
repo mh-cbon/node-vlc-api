@@ -13,5 +13,6 @@
   },
   "scripts": {
     "test": "node ./test/thisistheremix.js"
-  }
+  },
+  "registry": "npm"
 }
