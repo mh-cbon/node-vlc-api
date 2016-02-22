@@ -1,5 +1,6 @@
 var hyperquest = require('hyperquest'),
     url = require('url'),
+    querystring = require('querystring'),
     path = require('path'),
     util = require('util');
 
@@ -18,12 +19,8 @@ var Client = module.exports = function (opts) {
 
   opts = opts || {};
 
-  this.host = opts.host;
-  this.port = opts.port;
-  this._base = this.base || util.format('http://%s:%d',
-    opts.host || 'localhost',
-    opts.port || 8080
-  );
+  this.host = opts.host || 'localhost';
+  this.port = opts.port || 8080;
 
   // As of 2.1 VLC requires a password via basic http auth. Sadly it also
   // currently requires that username is empty, which the http.request()
@@ -340,7 +337,7 @@ Client.prototype.request = function (resource, opts, cb) {
     host: this.host,
     port: this.port,
     path: resource + '.json',
-    search: opts || {}
+    search: querystring.stringify(opts || {})
   });
   var req = hyperquest.get(uri, {auth: this._authHeader});
 
@@ -391,7 +388,7 @@ function validateResponseCode (statusCode) {
   // VLC documentation does not say which status codes to expect.
   // I'm filtering out 300-500 range codes here
   // as a sane default.
-  switch (Math.floor(res.statusCode/100)) {
+  switch (Math.floor(statusCode/100)) {
     case 1:
     case 2:
       return true;
