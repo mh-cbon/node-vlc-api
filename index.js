@@ -1,4 +1,4 @@
-var request = require('request'),
+var hyperquest = require('hyperquest'),
     url = require('url'),
     path = require('path'),
     util = require('util');
@@ -18,6 +18,8 @@ var Client = module.exports = function (opts) {
 
   opts = opts || {};
 
+  this.host = opts.host;
+  this.port = opts.port;
   this._base = this.base || util.format('http://%s:%d',
     opts.host || 'localhost',
     opts.port || 8080
@@ -35,6 +37,7 @@ var Client = module.exports = function (opts) {
 
   // STATUS RESOURCE (almost everything is lumped onto this resource.)
   this.status = this.request.bind(this, 'status');
+
   // Add a song to the playlist.
   this.status.enqueue = function (uri, opts, cb) {
     if (typeof opts == 'function') {
@@ -88,9 +91,9 @@ var Client = module.exports = function (opts) {
       return client.status({command: 'pl_pause'}, status);
     }
     if (status) {
-      return client.status({command: 'pl_forceresume'}, status);      
+      return client.status({command: 'pl_forceresume'}, status);
     }
-    return client.status({command: 'pl_forcepause'}, status);      
+    return client.status({command: 'pl_forcepause'}, status);
   }
   // Stop playback.
   this.status.stop = this.request.bind(this, 'status', {command: 'pl_stop'});
@@ -100,7 +103,7 @@ var Client = module.exports = function (opts) {
   ;
   // Next and previous.
   this.status.next = this.request.bind(this, 'status', {command: 'pl_next'});
-  this.status.prev 
+  this.status.prev
     = this.status.previous
     = this.request.bind(this, 'status', {command: 'pl_previous'})
   ;
@@ -317,11 +320,6 @@ var Client = module.exports = function (opts) {
   };
 }
 
-// Resolve a resource to the uri we need.
-Client.prototype._resolve = function (resource) {
-  return url.resolve(this._base, util.format('/requests/%s.json', resource));
-}
-
 // Base vlc api request client api.
 Client.prototype.request = function (resource, opts, cb) {
   var client = this;
@@ -337,59 +335,74 @@ Client.prototype.request = function (resource, opts, cb) {
   }
 
   // From what I can tell, the api is completely GET-based.
-  request({
-    method: 'GET',
-    uri: client._resolve(resource),
-    qs: opts || {},
-    headers: {
-      'Authorization' : this._authHeader
-    }
-  }, function (err, res, body) {
-    if (err) {
-      // likely a connection error to the vlc server
-      throw err;
-    }
-
-    // Documentation does not say which status codes to expect.
-    // I'm filtering out 300-500 range codes here
-    // as a sane default.
-    switch (Math.floor(res.statusCode/100)) {
-      case 1:
-      case 2:
-        break;
-      case 3:
-      case 4:
-      case 5:
-      default:
-        if (!err) {
-          err = new Error(
-            util.format('HTTP status %d', res.statusCode)
-          );
-        }
-        break;
-    }
-
-    // Body should be JSON-parse-able.
-    var json;
-
-    try {
-      json = JSON.parse(body.toString());
-    }
-    catch (err) {
-      json = body.toString();
-    }
-    finally {
-      // Optional cb. Sometimes you want to fire and forget.
-      if (cb) {
-        cb(err, json);
-      }
-      else {
-        if (err) {
-          throw err;
-        }
-      }
-    }
+  var uri = url.format({
+    protocol: 'http',
+    host: this.host,
+    port: this.port,
+    path: resource + '.json',
+    search: opts || {}
   });
+  var req = hyperquest.get(uri, {auth: this._authHeader});
+
+  req.on('response', function (res) {
+
+    if (!validateResponseCode(res.statusCode)) {
+      if (cb) {
+        cb(err);
+        cb = null;
+        return;
+      }
+      else throw err;
+    }
+
+    var body = '';
+    res.on('data', function (d) {
+      body += d.toString();
+    })
+
+    res.on('end', function () {
+      var json;
+      try {
+        json = JSON.parse(body.toString());
+        if (cb) {
+          cb(null, json);
+          cb = null;
+        }
+      }
+      catch (err) {
+        json = body;
+        cb(null, json);
+        cb = null;
+      }
+    })
+  });
+
+  req.on('error', function (err) {
+    if (cb) {
+      cb(err);
+      cb = null;
+    }
+    else throw err;
+  });
+
+}
+
+function validateResponseCode (statusCode) {
+  // VLC documentation does not say which status codes to expect.
+  // I'm filtering out 300-500 range codes here
+  // as a sane default.
+  switch (Math.floor(res.statusCode/100)) {
+    case 1:
+    case 2:
+      return true;
+      break;
+    case 3:
+    case 4:
+    case 5:
+    default:
+      return false;
+      break;
+  }
 }
 
 // Downloads art for current song.
@@ -397,5 +410,10 @@ Client.prototype.request = function (resource, opts, cb) {
 Client.prototype.art = function () {
   // Returns a request pipe that should be streaming down an image of some
   // kind.
-  return request(url.resolve(this._base, 'art'));
+  var uri = url.format({
+    protocol: 'http',
+    host: this.host,
+    port: this.port
+  });
+  return hyperquest(uri, {auth: this._authHeader});
 };

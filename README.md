@@ -1,6 +1,6 @@
 # vlc-api
 
-HTTP API client for node.js
+HTTP API client for node.js an the browser. Tested with webpack, should work fine with browserify too.
 
 (Yes, vlc has an [http api](https://github.com/videolan/vlc/tree/master/share/lua/http/requests/README.txt))
 
@@ -10,7 +10,7 @@ Host running VLC with the [Web Interface](https://wiki.videolan.org/Documentatio
 
 ## Install
 
-    npm install vlc-api --save
+    npm install @mh-cbon/vlc-api --save
 
 ## Example
 
@@ -41,12 +41,12 @@ $ node
 > var vlc = require('./')({password: '123'});
 undefined
 > vlc
-{ apiVersion: 
+{ apiVersion:
    { vlc: '2.1.0 Rincewind',
      spec: 'https://github.com/videolan/vlc/tree/master/share/lua/http/requests/README.txt' },
   _base: 'http://localhost:8080',
   _authHeader: 'Basic OjEyMw==',
-  status: 
+  status:
    { [Function]
      enqueue: [Function],
      addSubtitle: [Function],
@@ -72,7 +72,7 @@ undefined
      volume: [Function],
      seek: [Function],
      preamp: [Function],
-     equalizer: 
+     equalizer:
       { [Function]
         enable: [Function],
         disable: [Function],
@@ -88,7 +88,7 @@ undefined
 undefined
 > vlc.status.resume()
 undefined
-> 
+>
 
 ```
 
@@ -101,3 +101,10 @@ undefined
 ## License
 
 MIT/X11.
+
+## Changes
+
+Since original release by [jhbrook](https://github.com/jfhbrook/node-vlc-api)
+
+- VLC 2.1 was added by [AdamBurgess](https://github.com/AdamBurgess/node-vlc-api)
+- webpack support (replaced request by hyperquest) was added by [mh-cbon](https://github.com/mh-cbon/node-vlc-api)

@@ -1,6 +1,6 @@
 {
   "author": "Joshua Holbrook <josh.holbrook@gmail.com> (http://jesusabdullah.net)",
-  "name": "vlc-api",
+  "name": "@mh-cbon/vlc-api",
   "description": "HTTP API client for VLC v2.1+",
   "version": "0.0.1",
   "homepage": "https://github.com/jesusabdullah/node-vlc-api",
@@ -8,8 +8,9 @@
     "url": "git@github.com:jesusabdullah/node-vlc-api.git"
   },
   "main": "./index.js",
+  "engines" : { "node" : ">=5.0" },
   "dependencies": {
-    "request": "~2.55.0"
+    "hyperquest": "^1.2.0"
   },
   "scripts": {
     "test": "node ./test/thisistheremix.js"
