@@ -25,9 +25,7 @@ var Client = module.exports = function (opts) {
   // As of 2.1 VLC requires a password via basic http auth. Sadly it also
   // currently requires that username is empty, which the http.request()
   // auth option doesn't seem to like, so we do this manually here.
-  this._authHeader = util.format('Basic %s',
-    new Buffer(opts.username || '' + ':' + opts.password || '').toString('base64')
-  );
+  this._authHeader = opts.username || '' + ':' + opts.password;
 
   // The rest of this constructor is defining all the convenience methods
   // that make this api useful. It may be nice to move this elsewhere. Unsure.
@@ -321,31 +319,33 @@ var Client = module.exports = function (opts) {
 Client.prototype.request = function (resource, opts, cb) {
   var client = this;
 
-  if (typeof resource == 'function') {
-    return cb(
-      new Error('First argument to Client#request should be a resource.')
-    );
-  }
   if (typeof opts == 'function') {
     cb = opts;
     opts = {};
   }
 
+  if (typeof resource == 'function') {
+    return cb(
+      new Error('First argument to Client#request should be a resource.')
+    );
+  }
+
   // From what I can tell, the api is completely GET-based.
   var uri = url.format({
     protocol: 'http',
-    host: this.host,
-    port: this.port,
-    path: resource + '.json',
-    search: querystring.stringify(opts || {})
+    hostname: client.host,
+    port: client.port,
+    pathname: '/requests/' + resource + '.json',
+    search: querystring.stringify(opts || {}),
+    auth: client._authHeader
   });
-  var req = hyperquest.get(uri, {auth: this._authHeader});
+  var req = hyperquest.get(uri, {auth: client._authHeader});
 
   req.on('response', function (res) {
 
     if (!validateResponseCode(res.statusCode)) {
       if (cb) {
-        cb(err);
+        cb("Invalid response code " + res.statusCode);
         cb = null;
         return;
       }
@@ -371,7 +371,15 @@ Client.prototype.request = function (resource, opts, cb) {
         cb(null, json);
         cb = null;
       }
-    })
+    });
+
+    res.on('error', function (err) {
+      if (cb) {
+        cb(err);
+        cb = null;
+      }
+      else throw err;
+    });
   });
 
   req.on('error', function (err) {
@@ -409,7 +417,7 @@ Client.prototype.art = function () {
   // kind.
   var uri = url.format({
     protocol: 'http',
-    host: this.host,
+    hostname: this.host,
     port: this.port
   });
   return hyperquest(uri, {auth: this._authHeader});
