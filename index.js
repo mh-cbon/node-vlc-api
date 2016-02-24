@@ -65,6 +65,24 @@ var Client = module.exports = function (opts) {
     opts.input = uri;
     return client.status(opts, cb);
   };
+  this.status.playlistPlay = function (id, opts, cb) {
+    if (typeof opts == 'function') {
+      cb = opts;
+      opts = {};
+    }
+    opts.command = 'pl_play';
+    if (id) opts.id = id;
+    return client.status(opts, cb);
+  };
+  this.status.playlistPause = function (id, opts, cb) {
+    if (typeof opts == 'function') {
+      cb = opts;
+      opts = {};
+    }
+    opts.command = 'pl_pause';
+    if (id) opts.id = id;
+    return client.status(opts, cb);
+  };
   // Go to this song on the playlist.
   this.status.goto = function (id, opts, cb) {
     if (typeof id == 'function') {

@@ -102,6 +102,10 @@ undefined
 
 MIT/X11.
 
+## Read more
+
+- https://github.com/videolan/vlc/blob/master/share/lua/http/requests/README.txt
+
 ## Changes
 
 Since original release by [jhbrook](https://github.com/jfhbrook/node-vlc-api)
