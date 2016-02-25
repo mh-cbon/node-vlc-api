@@ -386,8 +386,10 @@ Client.prototype.request = function (resource, opts, cb) {
       }
       catch (err) {
         json = body;
-        cb(null, json);
-        cb = null;
+        if (cb) {
+          cb(null, json);
+          cb = null;
+        }
       }
     });
 
