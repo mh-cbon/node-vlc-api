@@ -110,5 +110,5 @@ MIT/X11.
 
 Since original release by [jhbrook](https://github.com/jfhbrook/node-vlc-api)
 
-- VLC 2.1 was added by [AdamBurgess](https://github.com/AdamBurgess/node-vlc-api)
+- VLC 2.1 was added by [Brandon Jones](https://github.com/bhj)
 - webpack support (replaced request by hyperquest) was added by [mh-cbon](https://github.com/mh-cbon/node-vlc-api)
