@@ -367,7 +367,7 @@ Client.prototype.request = function (resource, opts, cb) {
         cb = null;
         return;
       }
-      else throw err;
+      else throw "Invalid response code " + res.statusCode;
     }
 
     var body = '';
